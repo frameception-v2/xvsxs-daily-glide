@@ -1,3 +1,5 @@
-export const PROJECT_ID = 'farcaster-frames-template';
-export const PROJECT_TITLE = "Farcaster Frames Template";
-export const PROJECT_DESCRIPTION = "A Farcaster Frames v2 Template by hellno";
+export const PROJECT_ID = 'daily-glide';
+export const PROJECT_TITLE = "Daily Glide";
+export const PROJECT_DESCRIPTION = "Daily Check-In & Streak Tracker";
+export const DAILY_POINTS = 100;
+export const STREAK_RESET_HOURS = 24;

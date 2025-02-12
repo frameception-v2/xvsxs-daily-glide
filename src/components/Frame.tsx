@@ -22,17 +22,86 @@ import { createStore } from "mipd";
 import { Label } from "~/components/ui/label";
 import { PROJECT_TITLE } from "~/lib/constants";
 
-function ExampleCard() {
+function CheckInCard() {
+  const [lastCheckIn, setLastCheckIn] = useState<Date>(() => {
+    const saved = localStorage.getItem('dailyGlideData');
+    return saved ? new Date(JSON.parse(saved).lastCheckIn) : new Date(0);
+  });
+  const [points, setPoints] = useState(() => {
+    const saved = localStorage.getItem('dailyGlideData');
+    return saved ? JSON.parse(saved).points : 0;
+  });
+  const [streak, setStreak] = useState(() => {
+    const saved = localStorage.getItem('dailyGlideData');
+    return saved ? JSON.parse(saved).streak : 0;
+  });
+
+  const checkIn = useCallback(() => {
+    const now = new Date();
+    const timeDiff = now.getTime() - lastCheckIn.getTime();
+    const hoursDiff = timeDiff / (1000 * 60 * 60);
+
+    let newStreak = streak;
+    if (hoursDiff > STREAK_RESET_HOURS) {
+      newStreak = 0;
+    }
+
+    const newPoints = points + DAILY_POINTS;
+    const newStreakValue = newStreak + 1;
+    
+    const data = {
+      lastCheckIn: now.toISOString(),
+      points: newPoints,
+      streak: newStreakValue
+    };
+
+    localStorage.setItem('dailyGlideData', JSON.stringify(data));
+    
+    setLastCheckIn(now);
+    setPoints(newPoints);
+    setStreak(newStreakValue);
+  }, [lastCheckIn, points, streak]);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Welcome to the Frame Template</CardTitle>
+        <CardTitle>Daily Check-In</CardTitle>
         <CardDescription>
-          This is an example card that you can customize or remove
+          {streak > 0 ? `${streak} day streak!` : "Start your daily streak!"}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Label>Place content in a Card here.</Label>
+      <CardContent className="space-y-4">
+        <div className="flex justify-between">
+          <div>
+            <Label className="text-sm">Points</Label>
+            <p className="text-2xl font-bold">{points}</p>
+          </div>
+          <div>
+            <Label className="text-sm">Current Streak</Label>
+            <p className="text-2xl font-bold">{streak} days</p>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <Label className="text-sm">Last Check-In</Label>
+          <p className="text-lg">
+            {lastCheckIn.getTime() > 0 ? 
+              formatTime(lastCheckIn) : "Never"}
+          </p>
+        </div>
+
+        <button
+          onClick={checkIn}
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          disabled={new Date().getTime() - lastCheckIn.getTime() < 1000 * 60 * 60 * 24}
+        >
+          {new Date().getTime() - lastCheckIn.getTime() < 1000 * 60 * 60 * 24 ?
+            "Checked In Today!" : "Check In Now"}
+        </button>
       </CardContent>
     </Card>
   );
@@ -140,7 +209,10 @@ export default function Frame() {
         <h1 className="text-2xl font-bold text-center mb-4 text-gray-700 dark:text-gray-300">
           {PROJECT_TITLE}
         </h1>
-        <ExampleCard />
+        <p className="text-center text-gray-500 mb-6">
+          Check in daily to maintain your streak and earn points!
+        </p>
+        <CheckInCard />
       </div>
     </div>
   );
